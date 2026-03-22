@@ -48,6 +48,7 @@ jobs:
     with:
       admin-repo: base-safe-settings
       app-id: ${{ vars.SAFE_SETTINGS_APP_ID }}
+      dry-run: false
     secrets:
       private-key: ${{ secrets.SAFE_SETTINGS_PRIVATE_KEY }}
   check-test-safe-settings-workflow-success:
