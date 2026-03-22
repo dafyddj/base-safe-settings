@@ -59,6 +59,27 @@ jobs:
     timeout-minutes: 5
     steps:
       - run: echo 'Job `test-safe-settings-workflow-success` correctly succeeded'
+  test-change-config-path:
+    # Test changing `config-path` to a non-default value
+    needs: pre-commit
+    permissions:
+      contents: read
+    uses: ./.github/workflows/libsafe-settings.yml
+    with:
+      admin-repo: base-safe-settings
+      app-id: ${{ vars.SAFE_SETTINGS_APP_ID }}
+      config-path: safe-settings-config-path
+      dry-run: false
+    secrets:
+      private-key: ${{ secrets.SAFE_SETTINGS_PRIVATE_KEY }}
+  check-test-change-config-path:
+    name: Check `test-change-config-path`
+    needs: test-change-config-path
+    if: success()
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - run: echo 'Job `test-change-config-path` correctly succeeded'
   test-dry-run-error-is-skipped:
     # Test that an error is ignored when `dry-run` is true
     # and `skip-dry-run-errors` is true

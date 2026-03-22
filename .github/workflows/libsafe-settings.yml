@@ -8,6 +8,9 @@ on:
       app-id:
         required: true
         type: string
+      config-path:
+        type: string
+        default: safe-settings
       dry-run:
         type: boolean
         default: true
@@ -59,7 +62,7 @@ jobs:
         env:
           APP_ID: ${{ inputs.app-id }}
           ADMIN_REPO: ${{ inputs.admin-repo }}
-          CONFIG_PATH: ${{ vars.SAFE_SETTINGS_CONFIG_PATH || 'safe-settings' }}
+          CONFIG_PATH: ${{ inputs.config-path }}
           DEPLOYMENT_CONFIG_FILE: ${{ github.workspace }}/${{ vars.SAFE_SETTINGS_CONFIG_PATH || 'safe-settings' }}/deployment-settings.yml
           FULL_SYNC_NOP: ${{ inputs.dry-run }}
           LOG_LEVEL: ${{ vars.SAFE_SETTINGS_LOG_LEVEL || 'debug' }}
