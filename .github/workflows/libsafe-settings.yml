@@ -11,6 +11,9 @@ on:
       config-path:
         type: string
         default: safe-settings
+      deployment-config-file:
+        type: string
+        default: deployment-settings.yml
       dry-run:
         type: boolean
         default: true
@@ -63,7 +66,7 @@ jobs:
           APP_ID: ${{ inputs.app-id }}
           ADMIN_REPO: ${{ inputs.admin-repo }}
           CONFIG_PATH: ${{ inputs.config-path }}
-          DEPLOYMENT_CONFIG_FILE: ${{ github.workspace }}/${{ vars.SAFE_SETTINGS_CONFIG_PATH || 'safe-settings' }}/deployment-settings.yml
+          DEPLOYMENT_CONFIG_FILE: ${{ github.workspace }}/${{ inputs.config-path }}/${{ inputs.deployment-config-file }}
           FULL_SYNC_NOP: ${{ inputs.dry-run }}
           LOG_LEVEL: ${{ vars.SAFE_SETTINGS_LOG_LEVEL || 'debug' }}
           PRIVATE_KEY: ${{ secrets.private-key }}
