@@ -1,0 +1,124 @@
+name: Test workflows
+
+on:
+  pull_request:
+  push:
+    branches:
+      - '**'
+  schedule:
+    - cron: 25 15 * * *
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref_name != github.event.repository.default_branch }}
+
+jobs:
+  should-run:
+    name: Should run
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    outputs:
+      should-run: ${{ steps.action.outputs.should-run }}
+    steps:
+      - id: action
+        uses: techneg-it/should-workflow-run@eff19348eb884f57e05bc6f05ae48ece3af14714 # v1.0.1
+  pre-commit:
+    name: Run `pre-commit`
+    needs: should-run
+    if: fromJSON(needs.should-run.outputs.should-run)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
+        with:
+          python-version: 3.14.3
+      - uses: pre-commit/action@2c7b3805fd2a0fd8c1884dcaebf91fc102a13ecd # v3.0.1
+  test-safe-settings-workflow-success:
+    # Test a basic successful run
+    needs: pre-commit
+    permissions:
+      contents: read
+    uses: ./.github/workflows/libsafe-settings.yml
+    with:
+      admin-repo: base-safe-settings
+      app-id: ${{ vars.SAFE_SETTINGS_APP_ID }}
+    secrets:
+      private-key: ${{ secrets.SAFE_SETTINGS_PRIVATE_KEY }}
+  check-test-safe-settings-workflow-success:
+    name: Check `test-safe-settings-workflow-success`
+    needs: test-safe-settings-workflow-success
+    if: success()
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - run: echo 'Job `test-safe-settings-workflow-success` correctly succeeded'
+  test-dry-run-error-is-skipped:
+    # Test that an error is ignored when `dry-run` is true
+    # and `skip-dry-run-errors` is true
+    needs: pre-commit
+    permissions:
+      contents: read
+    uses: ./.github/workflows/libsafe-settings.yml
+    with:
+      app-id: x99
+      dry-run: true
+      skip-dry-run-errors: true
+    secrets:
+      private-key: xx
+  check-test-dry-run-error-is-skipped:
+    name: Check `test-dry-run-error-is-skipped`
+    needs: test-dry-run-error-is-skipped
+    if: success()
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - run: echo 'Job `test-dry-run-error-is-skipped` correctly succeeded'
+  test-dry-run-error-is-not-skipped:
+    # Test that an error is not ignored when `dry-run` is true
+    # and `skip-dry-run-errors` is false
+    needs: pre-commit
+    permissions:
+      contents: read
+    uses: ./.github/workflows/libsafe-settings.yml
+    with:
+      app-id: x99
+      dry-run: true
+      skip-dry-run-errors: false
+    secrets:
+      private-key: xx
+  check-test-dry-run-error-is-not-skipped:
+    name: Check `test-dry-run-error-is-not-skipped`
+    needs: test-dry-run-error-is-not-skipped
+    if: failure()
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - run: echo 'Job `test-dry-run-error-is-not-skipped` correctly failed'
+  results:
+    name: Collect results
+    permissions:
+      checks: read
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: poseidon/wait-for-status-checks@899c768d191b56eef585c18f8558da19e1f3e707 # v0.6.0
+        with:
+          ignore: Collect results
+          ignore_pattern: ^test-.*
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Report success
+        run: echo "It works!"
+      - name: Update Healthchecks.io
+        if: github.ref_name == github.event.repository.default_branch
+        run: |
+          if [ -n "${HC_UUID}" ]; then
+            curl -fsS -m 10 --retry 5 -o /dev/null https://hc-ping.com/${HC_UUID}
+          fi
+        env:
+          HC_UUID: ${{ secrets.HC_UUID }}
