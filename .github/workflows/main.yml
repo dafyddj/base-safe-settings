@@ -80,6 +80,28 @@ jobs:
     timeout-minutes: 5
     steps:
       - run: echo 'Job `test-change-config-path` correctly succeeded'
+  test-change-deployment-config-file:
+    # Test changing `deployment-config-file` to a non-default value
+    needs: pre-commit
+    permissions:
+      contents: read
+    uses: ./.github/workflows/libsafe-settings.yml
+    with:
+      admin-repo: base-safe-settings
+      app-id: ${{ vars.SAFE_SETTINGS_APP_ID }}
+      config-path: test-deployment-config-file
+      deployment-config-file: test-deployment-settings.yml
+      dry-run: false
+    secrets:
+      private-key: ${{ secrets.SAFE_SETTINGS_PRIVATE_KEY }}
+  check-test-change-deployment-config-file:
+    name: Check `test-change-deployment-config-file`
+    needs: test-change-deployment-config-file
+    if: success()
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - run: echo 'Job `test-change-deployment-config-file` correctly succeeded'
   test-dry-run-error-is-skipped:
     # Test that an error is ignored when `dry-run` is true
     # and `skip-dry-run-errors` is true
