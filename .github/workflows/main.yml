@@ -45,12 +45,11 @@ jobs:
     permissions:
       contents: read
     uses: ./.github/workflows/libsafe-settings.yml
+    # This is required to work with environment secrets in the called workflow
+    secrets: inherit # zizmor: ignore[secrets-inherit]
     with:
       admin-repo: base-safe-settings
-      app-id: ${{ vars.SAFE_SETTINGS_APP_ID }}
       dry-run: false
-    secrets:
-      private-key: ${{ secrets.SAFE_SETTINGS_PRIVATE_KEY }}
   check-test-safe-settings-workflow-success:
     name: Check `test-safe-settings-workflow-success`
     needs: test-safe-settings-workflow-success
@@ -65,13 +64,12 @@ jobs:
     permissions:
       contents: read
     uses: ./.github/workflows/libsafe-settings.yml
+    # This is required to work with environment secrets in the called workflow
+    secrets: inherit # zizmor: ignore[secrets-inherit]
     with:
       admin-repo: base-safe-settings
-      app-id: ${{ vars.SAFE_SETTINGS_APP_ID }}
       config-path: safe-settings-config-path
       dry-run: false
-    secrets:
-      private-key: ${{ secrets.SAFE_SETTINGS_PRIVATE_KEY }}
   check-test-change-config-path:
     name: Check `test-change-config-path`
     needs: test-change-config-path
@@ -86,14 +84,13 @@ jobs:
     permissions:
       contents: read
     uses: ./.github/workflows/libsafe-settings.yml
+    # This is required to work with environment secrets in the called workflow
+    secrets: inherit # zizmor: ignore[secrets-inherit]
     with:
       admin-repo: base-safe-settings
-      app-id: ${{ vars.SAFE_SETTINGS_APP_ID }}
       config-path: test-deployment-config-file
       deployment-config-file: test-deployment-settings.yml
       dry-run: false
-    secrets:
-      private-key: ${{ secrets.SAFE_SETTINGS_PRIVATE_KEY }}
   check-test-change-deployment-config-file:
     name: Check `test-change-deployment-config-file`
     needs: test-change-deployment-config-file
@@ -109,12 +106,10 @@ jobs:
     permissions:
       contents: read
     uses: ./.github/workflows/libsafe-settings.yml
+    # Do not inherit secrets so that an error is forced
     with:
-      app-id: x99
       dry-run: true
       skip-dry-run-errors: true
-    secrets:
-      private-key: xx
   check-test-dry-run-error-is-skipped:
     name: Check `test-dry-run-error-is-skipped`
     needs: test-dry-run-error-is-skipped
@@ -130,12 +125,10 @@ jobs:
     permissions:
       contents: read
     uses: ./.github/workflows/libsafe-settings.yml
+    # Do not inherit secrets so that an error is forced
     with:
-      app-id: x99
       dry-run: true
       skip-dry-run-errors: false
-    secrets:
-      private-key: xx
   check-test-dry-run-error-is-not-skipped:
     name: Check `test-dry-run-error-is-not-skipped`
     needs: test-dry-run-error-is-not-skipped
