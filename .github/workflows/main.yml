@@ -137,6 +137,26 @@ jobs:
     timeout-minutes: 5
     steps:
       - run: echo 'Job `test-dry-run-error-is-not-skipped` correctly failed'
+  test-change-target-environment:
+    # Test changing `target_environment` to a non-default value
+    needs: pre-commit
+    permissions:
+      contents: read
+    uses: ./.github/workflows/libsafe-settings.yml
+    # This is required to work with environment secrets in the called workflow
+    secrets: inherit # zizmor: ignore[secrets-inherit]
+    with:
+      admin-repo: base-safe-settings
+      dry-run: false
+      target-environment: staging
+  check-test-change-target-environment:
+    name: Check `test-change-target-environment`
+    needs: test-change-target-environment
+    if: success()
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - run: echo 'Job `test-change-target-environment` correctly succeeded'
   results:
     name: Collect results
     permissions:
